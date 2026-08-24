@@ -95,10 +95,7 @@ final class AppPreferences {
     
     @UserDefault(key: "hasCompletedOnboarding", defaultValue: false)
     var hasCompletedOnboarding: Bool
-    
-    @UserDefault(key: "useAsianAutocorrect", defaultValue: true)
-    var useAsianAutocorrect: Bool
-    
+
     @OptionalUserDefault(key: "selectedMicrophoneData")
     var selectedMicrophoneData: Data?
     
