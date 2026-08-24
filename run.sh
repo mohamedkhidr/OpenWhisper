@@ -13,29 +13,26 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "Building autocorrect-swift..."
 mkdir -p build
-CARGO_PROFILE_RELEASE_LTO=true \
-CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 \
-CARGO_PROFILE_RELEASE_STRIP=symbols \
-CARGO_PROFILE_RELEASE_PANIC=abort \
-cargo build -p autocorrect-swift --release --target aarch64-apple-darwin --manifest-path=asian-autocorrect/Cargo.toml
-cp ./asian-autocorrect/target/aarch64-apple-darwin/release/libautocorrect_swift.dylib ./build/libautocorrect_swift.dylib
-install_name_tool -id "@rpath/libautocorrect_swift.dylib" ./build/libautocorrect_swift.dylib
-codesign --force --sign - ./build/libautocorrect_swift.dylib
-if [[ $? -ne 0 ]]; then
-    echo "Cargo build failed!"
+
+# Homebrew installs to /opt/homebrew on Apple Silicon and /usr/local on Intel.
+LIBOMP_PREFIX=$(brew --prefix libomp 2>/dev/null)
+if [[ -z "$LIBOMP_PREFIX" ]]; then
+    echo "libomp not found via Homebrew! Run 'brew install libomp'."
     exit 1
 fi
 
 echo "Copying libomp.dylib..."
-cp /opt/homebrew/opt/libomp/lib/libomp.dylib ./build/libomp.dylib
+cp "${LIBOMP_PREFIX}/lib/libomp.dylib" ./build/libomp.dylib
 install_name_tool -id "@rpath/libomp.dylib" ./build/libomp.dylib
 codesign --force --sign - ./build/libomp.dylib
 
+# Build for the host architecture (arm64 or x86_64).
+HOST_ARCH=$(uname -m)
+
 # Build the app
-echo "Building OpenSuperWhisper..."
-BUILD_OUTPUT=$(xcodebuild -scheme OpenSuperWhisper -configuration Debug -jobs 8 -derivedDataPath build -quiet -destination 'platform=macOS,arch=arm64' -skipPackagePluginValidation -skipMacroValidation -UseModernBuildSystem=YES -clonedSourcePackagesDirPath SourcePackages -skipUnavailableActions CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO OTHER_CODE_SIGN_FLAGS="--entitlements OpenSuperWhisper/OpenSuperWhisper.entitlements" build 2>&1)
+echo "Building OpenSuperWhisper for ${HOST_ARCH}..."
+BUILD_OUTPUT=$(xcodebuild -scheme OpenSuperWhisper -configuration Debug -jobs 8 -derivedDataPath build -quiet -destination "platform=macOS,arch=${HOST_ARCH}" -skipPackagePluginValidation -skipMacroValidation -UseModernBuildSystem=YES -clonedSourcePackagesDirPath SourcePackages -skipUnavailableActions CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO OTHER_CODE_SIGN_FLAGS="--entitlements OpenSuperWhisper/OpenSuperWhisper.entitlements" build 2>&1)
 
 # sudo gem install xcpretty
 if command -v xcpretty &> /dev/null

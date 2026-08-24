@@ -16,7 +16,6 @@ OpenSuperWhisper is a macOS application that provides real-time audio transcript
 - 📁 Drag & drop audio files for transcription with queue processing
 - 🎤 Microphone selection — switch between built-in, external, Bluetooth and iPhone (Apple Continuity) mics from the menu bar
 - 🌍 Support for multiple languages with auto-detection
-- 🇯🇵🇨🇳🇰🇷 Asian language autocorrect ([autocorrect](https://github.com/huacnlee/autocorrect))
 
 ## Installation
 
@@ -29,7 +28,7 @@ Or from [GitHub releases page](https://github.com/Starmel/OpenSuperWhisper/relea
 
 ## Requirements
 
-- macOS (Apple Silicon/ARM64)
+- macOS 14.0 (Sonoma) or later, Apple Silicon or Intel (x86_64)
 
 ## Support
 
@@ -60,7 +59,7 @@ Contributions are welcome! Please feel free to submit pull requests or create is
 
 - [ ] Streaming transcription
 - [ ] Custom dictionary / keyword boosting ([#19](https://github.com/Starmel/OpenSuperWhisper/issues/19))
-- [ ] Intel macOS compatibility ([#15](https://github.com/Starmel/OpenSuperWhisper/issues/15))
+- [x] Intel macOS compatibility ([#15](https://github.com/Starmel/OpenSuperWhisper/issues/15))
 - [ ] Agent mode ([#14](https://github.com/Starmel/OpenSuperWhisper/issues/14))
 - [x] Background app ([#8](https://github.com/Starmel/OpenSuperWhisper/issues/8))
 - [x] Support long-press single key audio recording ([#18](https://github.com/Starmel/OpenSuperWhisper/issues/18))

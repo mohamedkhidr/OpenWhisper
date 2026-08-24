@@ -16,25 +16,26 @@ cmake -G Xcode -B libwhisper/build -S libwhisper
 rm -rf build
 mkdir -p build
 
-echo "Building autocorrect-swift..."
-CARGO_PROFILE_RELEASE_LTO=true \
-CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 \
-CARGO_PROFILE_RELEASE_STRIP=symbols \
-CARGO_PROFILE_RELEASE_PANIC=abort \
-cargo build -p autocorrect-swift --release --target aarch64-apple-darwin --manifest-path=asian-autocorrect/Cargo.toml
-cp ./asian-autocorrect/target/aarch64-apple-darwin/release/libautocorrect_swift.dylib ./build/libautocorrect_swift.dylib
-install_name_tool -id "@rpath/libautocorrect_swift.dylib" ./build/libautocorrect_swift.dylib
-codesign --force --sign "${CODE_SIGN_IDENTITY}" --timestamp ./build/libautocorrect_swift.dylib
+# Homebrew installs to /opt/homebrew on Apple Silicon and /usr/local on Intel.
+LIBOMP_PREFIX=$(brew --prefix libomp 2>/dev/null)
+if [[ -z "$LIBOMP_PREFIX" ]]; then
+    echo "libomp not found via Homebrew! Run 'brew install libomp'."
+    exit 1
+fi
 
 echo "Copying libomp.dylib..."
-cp /opt/homebrew/opt/libomp/lib/libomp.dylib ./build/libomp.dylib
+cp "${LIBOMP_PREFIX}/lib/libomp.dylib" ./build/libomp.dylib
 install_name_tool -id "@rpath/libomp.dylib" ./build/libomp.dylib
 codesign --force --sign "${CODE_SIGN_IDENTITY}" --timestamp ./build/libomp.dylib
+
+# Builds for the host machine's architecture — produces an arm64 DMG on
+# Apple Silicon and an x86_64 DMG on Intel. Not a universal binary.
+HOST_ARCH=$(uname -m)
 
 xcodebuild \
   -scheme "OpenSuperWhisper" \
   -configuration Release \
-  -destination "platform=macOS,arch=arm64" \
+  -destination "platform=macOS,arch=${HOST_ARCH}" \
   CODE_SIGN_STYLE=Manual \
   DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
   CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" \
